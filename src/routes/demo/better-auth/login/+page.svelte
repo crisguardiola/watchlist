@@ -6,7 +6,7 @@
 </script>
 
 <h1>Login</h1>
-<form method="post" action="?/signInEmail" use:enhance class="form-stack">
+<form method="post" action="?/signInEmail" use:enhance>
 	<label>
 		Email
 		<input type="email" name="email" />
@@ -19,9 +19,7 @@
 		Name (for registration)
 		<input name="name" />
 	</label>
-	<div class="form-actions">
-		<button>Login</button>
-		<button formaction="?/signUpEmail">Register</button>
-	</div>
+	<button>Login</button>
+	<button formaction="?/signUpEmail">Register</button>
 </form>
-<p class="error">{form?.message ?? ''}</p>
+<p style="color: red">{form?.message ?? ''}</p>
