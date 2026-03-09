@@ -2,4 +2,5 @@
 	import { resolve } from '$app/paths';
 </script>
 
-<a href={resolve('/demo/better-auth')}>better-auth</a>
+<h1>Demo</h1>
+<p><a href={resolve('/demo/better-auth')}>better-auth</a></p>
