@@ -107,6 +107,31 @@ button[formaction*='signUp']:hover {
 	border-bottom: none;
 }
 
+.movie-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+}
+
+.movie-item span {
+	flex: 1;
+}
+
+.delete-btn {
+	background: transparent;
+	color: #1a1a1a;
+	border-color: #999;
+	padding: 0.25rem 0.5rem;
+	font-size: 0.875rem;
+}
+
+.delete-btn:hover {
+	background: #fee;
+	border-color: #c00;
+	color: #c00;
+}
+
 .error {
 	color: #c00;
 	margin: 1rem 0 0;

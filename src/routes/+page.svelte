@@ -30,7 +30,13 @@
 
 <ul class="movie-list">
 	{#each data.movies as movie (movie.id)}
-		<li>{movie.title}</li>
+		<li>
+			<form method="post" action="?/deleteMovie" use:enhance class="movie-item">
+				<input type="hidden" name="id" value={movie.id} />
+				<span>{movie.title}</span>
+				<button type="submit" class="delete-btn">Delete</button>
+			</form>
+		</li>
 	{/each}
 </ul>
 
