@@ -40,7 +40,7 @@ export const actions: Actions = {
 
 		return {};
 	},
-	deleteMovie: async (event) => {
+		deleteMovie: async (event) => {
 		if (!event.locals.user) {
 			return redirect(302, '/login');
 		}
@@ -58,10 +58,4 @@ export const actions: Actions = {
 
 		return {};
 	},
-	signOut: async (event) => {
-		await auth.api.signOut({
-			headers: event.request.headers
-		});
-		return redirect(302, '/login');
-	}
 };
