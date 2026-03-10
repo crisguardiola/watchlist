@@ -10,6 +10,7 @@ export const watchlist = pgTable('watchlist', {
 	id: serial('id').primaryKey(),
 	userId: text('user_id').notNull(),
 	title: text('title').notNull(),
+	posterPath: text('poster_path'),
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 });
 

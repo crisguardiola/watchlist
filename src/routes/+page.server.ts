@@ -28,6 +28,7 @@ export const actions: Actions = {
 
 		const formData = await event.request.formData();
 		const title = formData.get('title')?.toString()?.trim() ?? '';
+		const posterPath = formData.get('poster_path')?.toString()?.trim() || null;
 
 		if (!title) {
 			return fail(400, { message: 'Title is required' });
@@ -35,7 +36,8 @@ export const actions: Actions = {
 
 		await db.insert(watchlist).values({
 			userId: event.locals.user.id,
-			title
+			title,
+			posterPath
 		});
 
 		return {};
