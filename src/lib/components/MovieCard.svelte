@@ -6,9 +6,11 @@
 		title: string;
 		posterPath: string | null;
 		genreNames?: string[];
+		tmdbId?: number;
+		genreIds?: number[];
 	}
 
-	let { title, posterPath, genreNames = [] }: Props = $props();
+	let { title, posterPath, genreNames = [], tmdbId, genreIds = [] }: Props = $props();
 
 	const TMDB_POSTER_BASE = 'https://image.tmdb.org/t/p';
 	const posterSize = 'w342';
@@ -35,6 +37,13 @@
 		<form method="post" action="/?/addMovie" use:enhance class="movie-card-add-form">
 			<input type="hidden" name="title" value={title} />
 			<input type="hidden" name="poster_path" value={posterPath ?? ''} />
+			{#if tmdbId}
+				<input type="hidden" name="tmdb_id" value={tmdbId} />
+				<input type="hidden" name="media_type" value="movie" />
+			{/if}
+			{#each genreIds as genreId}
+				<input type="hidden" name="genreIds" value={genreId} />
+			{/each}
 			<input type="hidden" name="status" value="want_to_watch" />
 			<button type="submit" class="secondary btn-icon movie-card-add-btn">
 				<Icon name="plus" size={14} />

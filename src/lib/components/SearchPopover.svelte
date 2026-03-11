@@ -58,8 +58,12 @@
 	function selectResult(result: TmdbResult) {
 		const titleInput = addForm?.querySelector<HTMLInputElement>('input[name="title"]');
 		const posterInput = addForm?.querySelector<HTMLInputElement>('input[name="poster_path"]');
+		const tmdbIdInput = addForm?.querySelector<HTMLInputElement>('input[name="tmdb_id"]');
+		const mediaTypeInput = addForm?.querySelector<HTMLInputElement>('input[name="media_type"]');
 		if (titleInput) titleInput.value = result.title;
 		if (posterInput) posterInput.value = result.posterPath;
+		if (tmdbIdInput) tmdbIdInput.value = String(result.id);
+		if (mediaTypeInput) mediaTypeInput.value = result.mediaType;
 		searchQuery = '';
 		results = [];
 		addForm?.requestSubmit();
@@ -111,6 +115,8 @@
 		>
 			<input type="hidden" name="title" value="" />
 			<input type="hidden" name="poster_path" value="" />
+			<input type="hidden" name="tmdb_id" value="" />
+			<input type="hidden" name="media_type" value="" />
 			<input type="hidden" name="status" value="want_to_watch" />
 			<input
 				bind:this={inputEl}

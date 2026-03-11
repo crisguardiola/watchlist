@@ -369,6 +369,32 @@ button[formaction*='signUp']:hover {
 	color: var(--color-bg);
 }
 
+/* Watchlist filters */
+.watchlist-filters {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem;
+	margin-bottom: 1.5rem;
+	align-items: flex-end;
+}
+
+.watchlist-filters .filter-group {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+}
+
+.watchlist-filters .filter-group label {
+	font-size: 0.8125rem;
+	font-weight: 500;
+	color: var(--color-text-muted);
+}
+
+.watchlist-filters .filter-select {
+	min-width: 8rem;
+	font-size: 0.9375rem;
+}
+
 /* Movie grid */
 .movie-grid {
 	display: grid;

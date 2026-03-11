@@ -29,6 +29,13 @@
       "when": 1773247964173,
       "tag": "0003_past_roland_deschain",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1773249681276,
+      "tag": "0004_slow_kinsey_walden",
+      "breakpoints": true
     }
   ]
 }

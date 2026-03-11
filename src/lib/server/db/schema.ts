@@ -20,6 +20,7 @@ export const watchlist = pgTable('watchlist', {
 	posterPath: text('poster_path'),
 	status: watchlistStatusEnum('status').notNull().default('want_to_watch'),
 	rating: integer('rating'),
+	genreIds: jsonb('genre_ids').$type<number[]>().default([]).notNull(),
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 });
 

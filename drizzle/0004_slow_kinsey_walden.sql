@@ -1,0 +1,1 @@
+ALTER TABLE "watchlist" ADD COLUMN "genre_ids" jsonb DEFAULT '[]'::jsonb NOT NULL;

@@ -139,15 +139,52 @@ export async function discoverMoviesByGenres(
 }
 
 export async function getMovieById(movieId: number): Promise<TmdbMovieResult | null> {
-	const data = (await tmdbFetch<{ id: number; title?: string; poster_path: string | null }>(
-		`/movie/${movieId}`
-	)) as { id: number; title?: string; poster_path: string | null } | null;
+	const data = (await tmdbFetch<{
+		id: number;
+		title?: string;
+		poster_path: string | null;
+		genres?: Array<{ id: number; name: string }>;
+	}>(`/movie/${movieId}`)) as {
+		id: number;
+		title?: string;
+		poster_path: string | null;
+		genres?: Array<{ id: number; name: string }>;
+	} | null;
 	if (!data?.poster_path) return null;
+	const genreIds = (data.genres ?? []).map((g) => g.id);
 	return {
 		id: data.id,
 		title: (data.title ?? '').trim() || 'Unknown',
 		posterPath: data.poster_path,
-		mediaType: 'movie'
+		mediaType: 'movie',
+		genreIds
+	};
+}
+
+export async function getTvDetails(tvId: number): Promise<{
+	id: number;
+	title: string;
+	posterPath: string | null;
+	genreIds: number[];
+} | null> {
+	const data = (await tmdbFetch<{
+		id: number;
+		name?: string;
+		poster_path: string | null;
+		genres?: Array<{ id: number; name: string }>;
+	}>(`/tv/${tvId}`)) as {
+		id: number;
+		name?: string;
+		poster_path: string | null;
+		genres?: Array<{ id: number; name: string }>;
+	} | null;
+	if (!data?.poster_path) return null;
+	const genreIds = (data.genres ?? []).map((g) => g.id);
+	return {
+		id: data.id,
+		title: (data.name ?? '').trim() || 'Unknown',
+		posterPath: data.poster_path,
+		genreIds
 	};
 }
 

@@ -4,13 +4,14 @@ import type { Actions } from './$types';
 import type { PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
 import { userPreferences, watchlist } from '$lib/server/db/schema';
+import { getMovieById, getTvDetails, getMovieGenres } from '$lib/server/tmdb';
 
 export const load: PageServerLoad = async (event) => {
 	if (!event.locals.user) {
 		return redirect(302, '/login');
 	}
 
-	const [moviesRows, prefsRows] = await Promise.all([
+	const [moviesRows, prefsRows, genres] = await Promise.all([
 		db
 			.select()
 			.from(watchlist)
@@ -19,7 +20,8 @@ export const load: PageServerLoad = async (event) => {
 		db
 			.select()
 			.from(userPreferences)
-			.where(eq(userPreferences.userId, event.locals.user.id))
+			.where(eq(userPreferences.userId, event.locals.user.id)),
+		getMovieGenres()
 	]);
 
 	const movies = moviesRows;
@@ -29,7 +31,7 @@ export const load: PageServerLoad = async (event) => {
 	const favoriteMovieIds = (prefs?.favoriteMovieIds ?? []) as number[];
 	const hasPreferences = genreIds.length > 0 || favoriteMovieIds.length > 0;
 
-	return { user: event.locals.user, movies, hasPreferences };
+	return { user: event.locals.user, movies, hasPreferences, genres };
 };
 
 export const actions: Actions = {
@@ -45,6 +47,30 @@ export const actions: Actions = {
 		const status =
 			statusRaw === 'watching' || statusRaw === 'watched' ? statusRaw : 'want_to_watch';
 
+		// Genre IDs from form (recommendations) or from TMDB fetch (search)
+		let genreIds: number[] = [];
+		const genreIdsForm = formData.getAll('genreIds');
+		if (genreIdsForm.length > 0) {
+			genreIds = genreIdsForm
+				.map((v) => Number(v))
+				.filter((n) => Number.isInteger(n) && n > 0);
+		} else {
+			const tmdbIdRaw = formData.get('tmdb_id');
+			const mediaType = formData.get('media_type')?.toString();
+			if (tmdbIdRaw != null && tmdbIdRaw !== '') {
+				const tmdbId = Number(tmdbIdRaw);
+				if (Number.isInteger(tmdbId) && tmdbId > 0) {
+					if (mediaType === 'tv') {
+						const tv = await getTvDetails(tmdbId);
+						if (tv?.genreIds) genreIds = tv.genreIds;
+					} else {
+						const movie = await getMovieById(tmdbId);
+						if (movie?.genreIds) genreIds = movie.genreIds;
+					}
+				}
+			}
+		}
+
 		if (!title) {
 			return fail(400, { message: 'Title is required' });
 		}
@@ -53,7 +79,8 @@ export const actions: Actions = {
 			userId: event.locals.user.id,
 			title,
 			posterPath,
-			status
+			status,
+			genreIds
 		});
 
 		return {};
