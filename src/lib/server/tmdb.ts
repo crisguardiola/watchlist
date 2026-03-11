@@ -19,6 +19,7 @@ export interface TmdbMovieResult {
 	title: string;
 	posterPath: string;
 	mediaType: 'movie';
+	genreIds?: number[];
 }
 
 async function tmdbFetch<T>(path: string, params: Record<string, string> = {}): Promise<T | null> {
@@ -106,13 +107,25 @@ export async function discoverMoviesByGenres(
 ): Promise<TmdbMovieResult[]> {
 	if (genreIds.length === 0) return [];
 	const data = (await tmdbFetch<{
-		results?: Array<{ id: number; title?: string; poster_path: string | null }>;
+		results?: Array<{
+			id: number;
+			title?: string;
+			poster_path: string | null;
+			genre_ids?: number[];
+		}>;
 	}>('/discover/movie', {
 		with_genres: genreIds.join(','),
 		sort_by: 'popularity.desc',
 		include_adult: 'false',
 		page: String(page)
-	})) as { results?: Array<{ id: number; title?: string; poster_path: string | null }> } | null;
+	})) as {
+		results?: Array<{
+			id: number;
+			title?: string;
+			poster_path: string | null;
+			genre_ids?: number[];
+		}>;
+	} | null;
 	if (!data?.results) return [];
 	return data.results
 		.filter((r) => r.poster_path)
@@ -120,7 +133,8 @@ export async function discoverMoviesByGenres(
 			id: r.id,
 			title: (r.title ?? '').trim() || 'Unknown',
 			posterPath: r.poster_path!,
-			mediaType: 'movie' as const
+			mediaType: 'movie' as const,
+			genreIds: r.genre_ids ?? []
 		}));
 }
 
@@ -142,9 +156,19 @@ export async function getMovieRecommendations(
 	page = 1
 ): Promise<TmdbMovieResult[]> {
 	const data = (await tmdbFetch<{
-		results?: Array<{ id: number; title?: string; poster_path: string | null }>;
+		results?: Array<{
+			id: number;
+			title?: string;
+			poster_path: string | null;
+			genre_ids?: number[];
+		}>;
 	}>(`/movie/${movieId}/recommendations`, { page: String(page) })) as {
-		results?: Array<{ id: number; title?: string; poster_path: string | null }>;
+		results?: Array<{
+			id: number;
+			title?: string;
+			poster_path: string | null;
+			genre_ids?: number[];
+		}>;
 	} | null;
 	if (!data?.results) return [];
 	return data.results
@@ -153,6 +177,7 @@ export async function getMovieRecommendations(
 			id: r.id,
 			title: (r.title ?? '').trim() || 'Unknown',
 			posterPath: r.poster_path!,
-			mediaType: 'movie' as const
+			mediaType: 'movie' as const,
+			genreIds: r.genre_ids ?? []
 		}));
 }

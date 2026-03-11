@@ -1,81 +1,22 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import Icon from '$lib/components/icons/Icon.svelte';
+	import MovieCard from '$lib/components/MovieCard.svelte';
+	import WatchlistCard from '$lib/components/WatchlistCard.svelte';
 	import type { ActionData, PageData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
-	const TMDB_POSTER_BASE = 'https://image.tmdb.org/t/p';
-
-	interface TmdbResult {
+	interface Recommendation {
 		id: number;
 		title: string;
 		posterPath: string;
 		mediaType: 'movie' | 'tv';
+		genreNames?: string[];
 	}
 
-	let searchQuery = $state('');
-	let results = $state<TmdbResult[]>([]);
-	let loading = $state(false);
-	let showDropdown = $state(false);
-	let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-	let addForm: HTMLFormElement | undefined;
+	type Tab = 'recommendations' | 'watchlist';
+	let activeTab = $state<Tab>('recommendations');
 
-	async function search() {
-		const q = searchQuery.trim();
-		if (q.length < 2) {
-			results = [];
-			return;
-		}
-		loading = true;
-		try {
-			const res = await fetch(`/api/search-tmdb?q=${encodeURIComponent(q)}`);
-			const data = await res.json();
-			results = data.results ?? [];
-		} catch {
-			results = [];
-		} finally {
-			loading = false;
-		}
-	}
-
-	function onSearchInput(e: Event) {
-		const target = e.target as HTMLInputElement;
-		searchQuery = target.value;
-		if (debounceTimer) clearTimeout(debounceTimer);
-		debounceTimer = setTimeout(() => {
-			search();
-			debounceTimer = null;
-		}, 300);
-		showDropdown = true;
-	}
-
-	function selectResult(result: TmdbResult) {
-		const titleInput = addForm?.querySelector<HTMLInputElement>('input[name="title"]');
-		const posterInput = addForm?.querySelector<HTMLInputElement>('input[name="poster_path"]');
-		if (titleInput) titleInput.value = result.title;
-		if (posterInput) posterInput.value = result.posterPath;
-		searchQuery = '';
-		results = [];
-		showDropdown = false;
-		addForm?.requestSubmit();
-	}
-
-	let blurTimeout: ReturnType<typeof setTimeout> | null = null;
-	function closeDropdown() {
-		blurTimeout = setTimeout(() => {
-			showDropdown = false;
-			blurTimeout = null;
-		}, 150);
-	}
-	function cancelCloseDropdown() {
-		if (blurTimeout) {
-			clearTimeout(blurTimeout);
-			blurTimeout = null;
-		}
-	}
-
-	let recommendations = $state<TmdbResult[]>([]);
+	let recommendations = $state<Recommendation[]>([]);
 	let recommendationsLoading = $state(true);
 
 	$effect(() => {
@@ -100,205 +41,72 @@
 	});
 </script>
 
-<h1>Watchlist</h1>
-
-<form
-	bind:this={addForm}
-	method="post"
-	action="?/addMovie"
-	use:enhance={() => {
-		return async ({ update }) => {
-			await update();
-		};
-	}}
-	class="form-stack"
->
-	<div class="search-wrapper">
-		<label>
-			Status
-			<select name="status" class="status-select">
-				<option value="want_to_watch">Want to watch</option>
-				<option value="watching">Watching</option>
-				<option value="watched">Watched</option>
-			</select>
-		</label>
-		<label>
-			Search movies & TV
-			<input
-				type="text"
-				placeholder="Search to add..."
-				value={searchQuery}
-				oninput={onSearchInput}
-				onkeydown={(e) => {
-					if (e.key === 'Enter') {
-						e.preventDefault();
-						if (results.length > 0) selectResult(results[0]);
-					}
-				}}
-				onfocus={() => (showDropdown = results.length > 0 || loading)}
-				onblur={closeDropdown}
-				autocomplete="off"
-			/>
-		</label>
-		<input type="hidden" name="title" value="" />
-		<input type="hidden" name="poster_path" value="" />
-		{#if showDropdown}
-			<div class="search-dropdown">
-				{#if loading}
-					<p class="search-loading">Searching...</p>
-				{:else if results.length === 0 && searchQuery.trim().length >= 2}
-					<p class="search-empty">No results found</p>
-				{:else if results.length > 0}
-					{#each results as result (result.id)}
-						<button
-							type="button"
-							class="search-result"
-							onmousedown={(e) => {
-								e.preventDefault();
-								cancelCloseDropdown();
-								selectResult(result);
-							}}
-						>
-							{#if result.posterPath}
-								<img
-									src="{TMDB_POSTER_BASE}/w92{result.posterPath}"
-									alt=""
-									width="46"
-									height="69"
-								/>
-							{:else}
-								<span class="search-result-placeholder">
-									<Icon name="film" size={24} />
-								</span>
-							{/if}
-							<span class="search-result-info">
-								<span class="search-result-title">{result.title}</span>
-								<span class="search-result-type">{result.mediaType === 'movie' ? 'Movie' : 'TV'}</span>
-							</span>
-						</button>
-					{/each}
-				{/if}
-			</div>
-		{/if}
-	</div>
-</form>
+<div class="segmented-control">
+	<button
+		type="button"
+		class:active={activeTab === 'recommendations'}
+		onclick={() => (activeTab = 'recommendations')}
+	>
+		Recommendations
+	</button>
+	<button
+		type="button"
+		class:active={activeTab === 'watchlist'}
+		onclick={() => (activeTab = 'watchlist')}
+	>
+		Watchlist
+	</button>
+</div>
 
 {#if form && 'message' in form && form.message}
 	<p class="error">{form.message}</p>
 {/if}
 
-<section class="recommendations-section">
-	<h2>Recommended for you</h2>
+{#if activeTab === 'recommendations'}
 	{#if recommendationsLoading}
-		<p class="recommendations-loading">Loading recommendations...</p>
+		<p class="empty-state">Loading recommendations...</p>
 	{:else if !data.hasPreferences}
-		<p class="recommendations-cta">
-			<a href="/profile">Set your preferences</a> to get personalized movie recommendations.
-		</p>
+		<div class="empty-state">
+			<p>Add your preferences to get personalized movie recommendations.</p>
+			<a href="/profile">Set preferences</a>
+		</div>
 	{:else if recommendations.length === 0}
-		<p class="recommendations-empty">No recommendations right now. Try adding more genres or favorite movies in your <a href="/profile">profile</a>.</p>
+		<div class="empty-state">
+			<p>No recommendations right now. Try adding more genres or favorite movies.</p>
+			<a href="/profile">Set preferences</a>
+		</div>
 	{:else}
-		<ul class="recommendations-list">
+		<ul class="movie-grid">
 			{#each recommendations as rec (rec.id)}
-				<li class="recommendation-item">
-					{#if rec.posterPath}
-						<img
-							src="{TMDB_POSTER_BASE}/w92{rec.posterPath}"
-							alt=""
-							width="46"
-							height="69"
-							class="recommendation-poster"
-						/>
-					{:else}
-						<span class="movie-poster-placeholder recommendation-poster">
-							<Icon name="film" size={24} />
-						</span>
-					{/if}
-					<span class="recommendation-title">{rec.title}</span>
-					<form method="post" action="?/addMovie" use:enhance class="recommendation-add-form">
-						<input type="hidden" name="title" value={rec.title} />
-						<input type="hidden" name="poster_path" value={rec.posterPath} />
-						<input type="hidden" name="status" value="want_to_watch" />
-						<button type="submit" class="secondary btn-icon">
-							<Icon name="plus" size={14} />
-							Add
-						</button>
-					</form>
+				<li>
+					<MovieCard
+						title={rec.title}
+						posterPath={rec.posterPath}
+						genreNames={rec.genreNames ?? []}
+					/>
 				</li>
 			{/each}
 		</ul>
 	{/if}
-</section>
-
-<ul class="movie-list">
-	{#each data.movies as movie (movie.id)}
-		<li>
-			<div class="movie-item">
-				{#if movie.posterPath}
-					<img
-						src="{TMDB_POSTER_BASE}/w185{movie.posterPath}"
-						alt=""
-						class="movie-poster"
-						width="62"
-						height="93"
+{:else}
+	{#if data.movies.length === 0}
+		<div class="empty-state">
+			<p>Your watchlist is empty. Search for movies to add them.</p>
+			<p>Use the search icon in the menu to find movies.</p>
+		</div>
+	{:else}
+		<ul class="movie-grid">
+			{#each data.movies as movie (movie.id)}
+				<li>
+					<WatchlistCard
+						id={movie.id}
+						title={movie.title}
+						posterPath={movie.posterPath}
+						status={movie.status ?? 'want_to_watch'}
+						rating={movie.rating}
 					/>
-				{:else}
-					<span class="movie-poster-placeholder">
-						<Icon name="film" size={32} />
-					</span>
-				{/if}
-				<span class="movie-title">{movie.title}</span>
-				<form method="post" action="?/updateStatus" use:enhance class="movie-status-form">
-					<input type="hidden" name="id" value={movie.id} />
-					<select
-						name="status"
-						class="status-select status-select-inline"
-						value={movie.status ?? 'want_to_watch'}
-						onchange={(e) => e.currentTarget.form?.requestSubmit()}
-					>
-						<option value="want_to_watch">Want to watch</option>
-						<option value="watching">Watching</option>
-						<option value="watched">Watched</option>
-					</select>
-				</form>
-				<form method="post" action="?/updateRating" use:enhance class="star-rating-form">
-					<input type="hidden" name="id" value={movie.id} />
-					<div class="star-rating" role="group" aria-label="Rate this movie">
-						{#each [1, 2, 3, 4, 5] as star}
-							<button
-								type="submit"
-								name="rating"
-								value={star}
-								class="star-btn"
-								aria-label="Rate {star} star{star === 1 ? '' : 's'}"
-								aria-pressed={movie.rating === star}
-							>
-								<span class="star {movie.rating !== null && star <= movie.rating ? 'filled' : 'empty'}">
-									{movie.rating !== null && star <= movie.rating ? '★' : '☆'}
-								</span>
-							</button>
-						{/each}
-						{#if movie.rating !== null}
-							<button
-								type="submit"
-								name="rating"
-								value="0"
-								class="star-clear"
-								aria-label="Clear rating"
-							>
-								×
-							</button>
-						{/if}
-					</div>
-				</form>
-				<form method="post" action="?/deleteMovie" use:enhance>
-					<input type="hidden" name="id" value={movie.id} />
-					<button type="submit" class="delete-btn btn-icon">
-						<Icon name="trash-2" size={14} />
-						Delete
-					</button>
-				</form>
-			</div>
-		</li>
-	{/each}
-</ul>
+				</li>
+			{/each}
+		</ul>
+	{/if}
+{/if}
