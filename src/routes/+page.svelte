@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import MovieCard from '$lib/components/MovieCard.svelte';
 	import WatchlistCard from '$lib/components/WatchlistCard.svelte';
 	import type { ActionData, PageData } from './$types';
@@ -19,6 +20,43 @@
 
 	let recommendations = $state<Recommendation[]>([]);
 	let recommendationsLoading = $state(true);
+	let removingTmdbId = $state<number | null>(null);
+
+	async function refetchRecommendations() {
+		try {
+			const res = await fetch('/api/recommendations', { credentials: 'include' });
+			if (res.ok) {
+				const json = await res.json();
+				recommendations = json?.recommendations ?? [];
+			}
+		} catch {
+			// Ignore fetch errors
+		}
+	}
+
+	function handleAddToWatchlist(e: CustomEvent<{ tmdbId?: number }>) {
+		const tmdbId = e.detail.tmdbId;
+		if (tmdbId == null) return;
+		removingTmdbId = tmdbId;
+		setTimeout(() => {
+			recommendations = recommendations.filter((r) => r.id !== tmdbId);
+			removingTmdbId = null;
+		}, 500);
+	}
+
+	function handleMovieAdded() {
+		refetchRecommendations();
+	}
+
+	onMount(() => {
+		const addHandler = (e: Event) => handleAddToWatchlist(e as CustomEvent<{ tmdbId?: number }>);
+		window.addEventListener('addToWatchlist', addHandler);
+		window.addEventListener('movieAddedToWatchlist', handleMovieAdded);
+		return () => {
+			window.removeEventListener('addToWatchlist', addHandler);
+			window.removeEventListener('movieAddedToWatchlist', handleMovieAdded);
+		};
+	});
 
 	// Watchlist filters
 	let statusFilter = $state<string>('all');
@@ -110,7 +148,7 @@
 	{:else}
 		<ul class="movie-grid">
 			{#each recommendations as rec (rec.id)}
-				<li>
+				<li class={removingTmdbId === rec.id ? 'movie-grid-item--adding' : ''}>
 					<MovieCard
 						title={rec.title}
 						posterPath={rec.posterPath}

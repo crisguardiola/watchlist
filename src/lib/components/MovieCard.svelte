@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
 	import Icon from '$lib/components/icons/Icon.svelte';
+	import { playAddSound } from '$lib/sounds';
 
 	interface Props {
 		title: string;
@@ -14,6 +16,22 @@
 
 	const TMDB_POSTER_BASE = 'https://image.tmdb.org/t/p';
 	const posterSize = 'w342';
+
+	function handleAddToWatchlist({ formData, action, cancel }: { formData: FormData; action: URL | null; cancel: () => void }) {
+		cancel();
+		playAddSound();
+		const id = formData.get('tmdb_id') ? Number(formData.get('tmdb_id')) : undefined;
+		window.dispatchEvent(new CustomEvent('addToWatchlist', { detail: { tmdbId: id } }));
+		const url = action ? (typeof action === 'string' ? action : action.toString()) : window.location.pathname + '?/addMovie';
+		fetch(url, {
+			method: 'POST',
+			body: formData,
+			credentials: 'include'
+		}).then(() => {
+			invalidateAll();
+			window.dispatchEvent(new CustomEvent('movieAddedToWatchlist'));
+		});
+	}
 </script>
 
 <article class="movie-card">
@@ -29,12 +47,16 @@
 		</span>
 	{/if}
 	<div class="movie-card-overlay" aria-hidden="true"></div>
+	{#if genreNames.length > 0}
+		<div class="movie-card-genre-tags">
+			{#each genreNames.slice(0, 2) as genreName}
+				<span class="movie-card-genre-tag">{genreName}</span>
+			{/each}
+		</div>
+	{/if}
 	<div class="movie-card-content">
 		<h3 class="movie-card-title">{title}</h3>
-		{#if genreNames.length > 0}
-			<p class="movie-card-category">{genreNames.slice(0, 2).join(', ')}</p>
-		{/if}
-		<form method="post" action="/?/addMovie" use:enhance class="movie-card-add-form">
+		<form method="post" action="/?/addMovie" use:enhance={handleAddToWatchlist} class="movie-card-add-form">
 			<input type="hidden" name="title" value={title} />
 			<input type="hidden" name="poster_path" value={posterPath ?? ''} />
 			{#if tmdbId}

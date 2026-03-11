@@ -22,6 +22,14 @@ export const GET: RequestHandler = async (event) => {
 		return json({ recommendations: [] }, { status: 401 });
 	}
 
+	const url = new URL(event.request.url);
+	const countParam = url.searchParams.get('count');
+	const excludeParam = url.searchParams.get('exclude');
+	const maxCount = countParam ? Math.min(Math.max(1, Number(countParam)), MAX_RECOMMENDATIONS) : MAX_RECOMMENDATIONS;
+	const excludeIds = excludeParam
+		? new Set(excludeParam.split(',').map((s) => Number(s.trim())).filter((n) => Number.isInteger(n) && n > 0))
+		: new Set<number>();
+
 	const [prefs] = await db
 		.select()
 		.from(userPreferences)
@@ -47,29 +55,34 @@ export const GET: RequestHandler = async (event) => {
 	);
 	const genreMap = new Map(genres.map((g) => [g.id, g.name]));
 
-	const seenIds = new Set<number>();
+	const seenIds = new Set<number>([...excludeIds]);
 	const results: TmdbMovieResult[] = [];
 
+	const addIfValid = (m: TmdbMovieResult) => {
+		if (!seenIds.has(m.id) && !watchlistTitles.has(m.title.toLowerCase().trim())) {
+			seenIds.add(m.id);
+			results.push(m);
+			return true;
+		}
+		return false;
+	};
+
 	if (genreIds.length > 0) {
-		const discovered = await discoverMoviesByGenres(genreIds, 1);
-		for (const m of discovered) {
-			if (!seenIds.has(m.id) && !watchlistTitles.has(m.title.toLowerCase().trim())) {
-				seenIds.add(m.id);
-				results.push(m);
-				if (results.length >= MAX_RECOMMENDATIONS) break;
+		for (let page = 1; results.length < maxCount && page <= 5; page++) {
+			const discovered = await discoverMoviesByGenres(genreIds, page);
+			for (const m of discovered) {
+				addIfValid(m);
+				if (results.length >= maxCount) break;
 			}
 		}
 	}
 
 	for (const movieId of favoriteMovieIds) {
-		if (results.length >= MAX_RECOMMENDATIONS) break;
+		if (results.length >= maxCount) break;
 		const recs = await getMovieRecommendations(movieId, 1);
 		for (const m of recs) {
-			if (!seenIds.has(m.id) && !watchlistTitles.has(m.title.toLowerCase().trim())) {
-				seenIds.add(m.id);
-				results.push(m);
-				if (results.length >= MAX_RECOMMENDATIONS) break;
-			}
+			addIfValid(m);
+			if (results.length >= maxCount) break;
 		}
 	}
 
