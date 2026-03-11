@@ -91,6 +91,14 @@
 >
 	<div class="search-wrapper">
 		<label>
+			Status
+			<select name="status" class="status-select">
+				<option value="want_to_watch">Want to watch</option>
+				<option value="watching">Watching</option>
+				<option value="watched">Watched</option>
+			</select>
+		</label>
+		<label>
 			Search movies & TV
 			<input
 				type="text"
@@ -158,8 +166,7 @@
 <ul class="movie-list">
 	{#each data.movies as movie (movie.id)}
 		<li>
-			<form method="post" action="?/deleteMovie" use:enhance class="movie-item">
-				<input type="hidden" name="id" value={movie.id} />
+			<div class="movie-item">
 				{#if movie.posterPath}
 					<img
 						src="{TMDB_POSTER_BASE}/w185{movie.posterPath}"
@@ -174,11 +181,57 @@
 					</span>
 				{/if}
 				<span class="movie-title">{movie.title}</span>
-				<button type="submit" class="delete-btn btn-icon">
-					<Icon name="trash-2" size={14} />
-					Delete
-				</button>
-			</form>
+				<form method="post" action="?/updateStatus" use:enhance class="movie-status-form">
+					<input type="hidden" name="id" value={movie.id} />
+					<select
+						name="status"
+						class="status-select status-select-inline"
+						value={movie.status ?? 'want_to_watch'}
+						onchange={(e) => e.currentTarget.form?.requestSubmit()}
+					>
+						<option value="want_to_watch">Want to watch</option>
+						<option value="watching">Watching</option>
+						<option value="watched">Watched</option>
+					</select>
+				</form>
+				<form method="post" action="?/updateRating" use:enhance class="star-rating-form">
+					<input type="hidden" name="id" value={movie.id} />
+					<div class="star-rating" role="group" aria-label="Rate this movie">
+						{#each [1, 2, 3, 4, 5] as star}
+							<button
+								type="submit"
+								name="rating"
+								value={star}
+								class="star-btn"
+								aria-label="Rate {star} star{star === 1 ? '' : 's'}"
+								aria-pressed={movie.rating === star}
+							>
+								<span class="star {movie.rating !== null && star <= movie.rating ? 'filled' : 'empty'}">
+									{movie.rating !== null && star <= movie.rating ? '★' : '☆'}
+								</span>
+							</button>
+						{/each}
+						{#if movie.rating !== null}
+							<button
+								type="submit"
+								name="rating"
+								value="0"
+								class="star-clear"
+								aria-label="Clear rating"
+							>
+								×
+							</button>
+						{/if}
+					</div>
+				</form>
+				<form method="post" action="?/deleteMovie" use:enhance>
+					<input type="hidden" name="id" value={movie.id} />
+					<button type="submit" class="delete-btn btn-icon">
+						<Icon name="trash-2" size={14} />
+						Delete
+					</button>
+				</form>
+			</div>
 		</li>
 	{/each}
 </ul>

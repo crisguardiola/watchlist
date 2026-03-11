@@ -8,6 +8,20 @@
       "when": 1773100832046,
       "tag": "0000_kind_husk",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1773247056486,
+      "tag": "0001_brown_magdalene",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1773247276689,
+      "tag": "0002_busy_freak",
+      "breakpoints": true
     }
   ]
 }
