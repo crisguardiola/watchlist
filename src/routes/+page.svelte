@@ -74,6 +74,30 @@
 			blurTimeout = null;
 		}
 	}
+
+	let recommendations = $state<TmdbResult[]>([]);
+	let recommendationsLoading = $state(true);
+
+	$effect(() => {
+		let cancelled = false;
+		recommendationsLoading = true;
+		fetch('/api/recommendations', { credentials: 'include' })
+			.then((res) => (res.status === 401 ? [] : res.json()))
+			.then((json) => {
+				if (cancelled) return;
+				recommendations = json?.recommendations ?? [];
+				recommendationsLoading = false;
+			})
+			.catch(() => {
+				if (!cancelled) {
+					recommendations = [];
+					recommendationsLoading = false;
+				}
+			});
+		return () => {
+			cancelled = true;
+		};
+	});
 </script>
 
 <h1>Watchlist</h1>
@@ -162,6 +186,49 @@
 {#if form && 'message' in form && form.message}
 	<p class="error">{form.message}</p>
 {/if}
+
+<section class="recommendations-section">
+	<h2>Recommended for you</h2>
+	{#if recommendationsLoading}
+		<p class="recommendations-loading">Loading recommendations...</p>
+	{:else if !data.hasPreferences}
+		<p class="recommendations-cta">
+			<a href="/profile">Set your preferences</a> to get personalized movie recommendations.
+		</p>
+	{:else if recommendations.length === 0}
+		<p class="recommendations-empty">No recommendations right now. Try adding more genres or favorite movies in your <a href="/profile">profile</a>.</p>
+	{:else}
+		<ul class="recommendations-list">
+			{#each recommendations as rec (rec.id)}
+				<li class="recommendation-item">
+					{#if rec.posterPath}
+						<img
+							src="{TMDB_POSTER_BASE}/w92{rec.posterPath}"
+							alt=""
+							width="46"
+							height="69"
+							class="recommendation-poster"
+						/>
+					{:else}
+						<span class="movie-poster-placeholder recommendation-poster">
+							<Icon name="film" size={24} />
+						</span>
+					{/if}
+					<span class="recommendation-title">{rec.title}</span>
+					<form method="post" action="?/addMovie" use:enhance class="recommendation-add-form">
+						<input type="hidden" name="title" value={rec.title} />
+						<input type="hidden" name="poster_path" value={rec.posterPath} />
+						<input type="hidden" name="status" value="want_to_watch" />
+						<button type="submit" class="secondary btn-icon">
+							<Icon name="plus" size={14} />
+							Add
+						</button>
+					</form>
+				</li>
+			{/each}
+		</ul>
+	{/if}
+</section>
 
 <ul class="movie-list">
 	{#each data.movies as movie (movie.id)}

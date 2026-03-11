@@ -2,22 +2,34 @@ import { fail, redirect } from '@sveltejs/kit';
 import { and, desc, eq } from 'drizzle-orm';
 import type { Actions } from './$types';
 import type { PageServerLoad } from './$types';
-import { auth } from '$lib/server/auth';
 import { db } from '$lib/server/db';
-import { watchlist } from '$lib/server/db/schema';
+import { userPreferences, watchlist } from '$lib/server/db/schema';
 
 export const load: PageServerLoad = async (event) => {
 	if (!event.locals.user) {
 		return redirect(302, '/login');
 	}
 
-	const movies = await db
-		.select()
-		.from(watchlist)
-		.where(eq(watchlist.userId, event.locals.user.id))
-		.orderBy(desc(watchlist.createdAt));
+	const [moviesRows, prefsRows] = await Promise.all([
+		db
+			.select()
+			.from(watchlist)
+			.where(eq(watchlist.userId, event.locals.user.id))
+			.orderBy(desc(watchlist.createdAt)),
+		db
+			.select()
+			.from(userPreferences)
+			.where(eq(userPreferences.userId, event.locals.user.id))
+	]);
 
-	return { user: event.locals.user, movies };
+	const movies = moviesRows;
+	const prefs = prefsRows[0] ?? null;
+
+	const genreIds = (prefs?.genreIds ?? []) as number[];
+	const favoriteMovieIds = (prefs?.favoriteMovieIds ?? []) as number[];
+	const hasPreferences = genreIds.length > 0 || favoriteMovieIds.length > 0;
+
+	return { user: event.locals.user, movies, hasPreferences };
 };
 
 export const actions: Actions = {

@@ -21,7 +21,7 @@
 		<div class="header-user">
 			<span class="header-user-info">
 				<Icon name="user" size={14} />
-				{data.user.name || data.user.email}
+				<a href="/profile" class="header-user-link">{data.user.name || data.user.email}</a>
 			</span>
 			<form method="post" action="/auth/signout" use:enhance class="header-user-form">
 				<button type="submit" class="secondary btn-icon">

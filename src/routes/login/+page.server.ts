@@ -46,7 +46,7 @@ export const actions: Actions = {
 					email,
 					password,
 					name,
-					callbackURL: '/'
+					callbackURL: '/onboarding'
 				}
 			});
 		} catch (error) {
@@ -56,6 +56,6 @@ export const actions: Actions = {
 			return fail(500, { message: 'Unexpected error' });
 		}
 
-		return redirect(302, '/');
+		return redirect(302, '/onboarding');
 	}
 };
