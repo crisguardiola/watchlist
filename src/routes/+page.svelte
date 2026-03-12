@@ -2,6 +2,8 @@
 	import { onMount } from 'svelte';
 	import MovieCard from '$lib/components/MovieCard.svelte';
 	import WatchlistCard from '$lib/components/WatchlistCard.svelte';
+	import StatusFilterSelect from '$lib/components/StatusFilterSelect.svelte';
+	import RatingFilterSelect from '$lib/components/RatingFilterSelect.svelte';
 	import type { ActionData, PageData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -66,6 +68,16 @@
 	const allGenres = $derived(
 		(data.genres ?? []).slice().sort((a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name))
 	);
+
+	const hasActiveFilters = $derived(
+		statusFilter !== 'all' || ratingFilter !== 'all' || genreFilter !== 'all'
+	);
+
+	function resetFilters() {
+		statusFilter = 'all';
+		ratingFilter = 'all';
+		genreFilter = 'all';
+	}
 
 	const filteredMovies = $derived.by(() => {
 		const movies = data.movies ?? [];
@@ -170,24 +182,11 @@
 		<div class="watchlist-filters">
 			<div class="filter-group">
 				<label for="filter-status">Status</label>
-				<select id="filter-status" bind:value={statusFilter} class="filter-select">
-					<option value="all">All</option>
-					<option value="want_to_watch">Want to watch</option>
-					<option value="watching">Watching</option>
-					<option value="watched">Watched</option>
-				</select>
+				<StatusFilterSelect id="filter-status" bind:value={statusFilter} />
 			</div>
 			<div class="filter-group">
 				<label for="filter-rating">Rating</label>
-				<select id="filter-rating" bind:value={ratingFilter} class="filter-select">
-					<option value="all">All</option>
-					<option value="1">1★</option>
-					<option value="2">2★</option>
-					<option value="3">3★</option>
-					<option value="4">4★</option>
-					<option value="5">5★</option>
-					<option value="unrated">Unrated</option>
-				</select>
+				<RatingFilterSelect id="filter-rating" bind:value={ratingFilter} />
 			</div>
 			<div class="filter-group">
 				<label for="filter-genre">Genre</label>
@@ -198,6 +197,11 @@
 					{/each}
 				</select>
 			</div>
+			{#if hasActiveFilters}
+				<button type="button" class="filter-reset" onclick={resetFilters}>
+					Reset
+				</button>
+			{/if}
 		</div>
 		{#if filteredMovies.length === 0}
 			<p class="empty-state">No movies match your filters.</p>
