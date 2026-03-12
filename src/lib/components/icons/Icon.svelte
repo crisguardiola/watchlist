@@ -2,6 +2,7 @@
 	interface Props {
 		name:
 			| 'film'
+			| 'vault'
 			| 'user'
 			| 'log-out'
 			| 'plus'
@@ -26,6 +27,8 @@
 	const icons: Record<string, string> = {
 		film:
 			'<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h16v16H4zM4 4v16M20 4v16M4 8h16M4 16h16"/>',
+		vault:
+			'<circle cx="12" cy="12" r="8.4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2.4" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M12 3.6v4.8M12 15.6v4.8M3.6 12h4.8M15.6 12h4.8"/>',
 		user:
 			'<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>',
 		'log-out':

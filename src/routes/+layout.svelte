@@ -54,8 +54,8 @@
 
 <header class="header layout">
 	<a href="/" class="header-brand">
-		<Icon name="film" size={20} />
-		Watchlist
+		<Icon name="vault" size={20} />
+		CineVault
 	</a>
 	{#if data.user}
 		<div class="header-actions">

@@ -207,9 +207,21 @@ button[formaction*='signUp']:hover {
 	align-items: center;
 	justify-content: space-between;
 	gap: 1rem;
-	padding: 0 0 1rem;
+	padding: 0 1.5rem 1rem;
 	margin-bottom: 1rem;
 	border-bottom: none;
+}
+
+@media (min-width: 768px) {
+	.header {
+		padding: 0 2rem 1rem;
+	}
+}
+
+@media (min-width: 1024px) {
+	.header {
+		padding: 0 2.5rem 1rem;
+	}
 }
 
 .header-actions {
