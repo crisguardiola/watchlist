@@ -4,13 +4,14 @@
 	import { enhance } from '$app/forms';
 	import Icon from '$lib/components/icons/Icon.svelte';
 	import SearchPopover from '$lib/components/SearchPopover.svelte';
+	import PreferencesPopover from '$lib/components/PreferencesPopover.svelte';
 	import type { LayoutData } from './$types';
 
 	let { children, data }: { children: any; data: LayoutData } = $props();
 
 	let searchOpen = $state(false);
+	let preferencesOpen = $state(false);
 	let profileDropdownOpen = $state(false);
-	let searchTriggerEl: HTMLButtonElement | undefined;
 	let profileTriggerEl: HTMLButtonElement | undefined;
 
 	function openSearch() {
@@ -21,8 +22,13 @@
 		searchOpen = false;
 	}
 
-	function getSearchTriggerRect(): DOMRect | null {
-		return searchTriggerEl?.getBoundingClientRect() ?? null;
+	function openPreferences() {
+		preferencesOpen = true;
+		profileDropdownOpen = false;
+	}
+
+	function closePreferences() {
+		preferencesOpen = false;
 	}
 
 	function toggleProfileDropdown() {
@@ -46,6 +52,12 @@
 			return () => document.removeEventListener('click', handleClickOutside);
 		}
 	});
+
+	$effect(() => {
+		const handler = () => (preferencesOpen = true);
+		window.addEventListener('openPreferences', handler);
+		return () => window.removeEventListener('openPreferences', handler);
+	});
 </script>
 
 <svelte:head>
@@ -64,7 +76,6 @@
 				class="header-btn"
 				aria-label="Search movies"
 				data-search-trigger
-				bind:this={searchTriggerEl}
 				onclick={openSearch}
 			>
 				<Icon name="search" size={20} />
@@ -83,7 +94,7 @@
 				</button>
 				{#if profileDropdownOpen}
 					<div class="profile-dropdown">
-						<a href="/profile" onclick={closeProfileDropdown}>Set preferences</a>
+						<button type="button" onclick={openPreferences}>Set preferences</button>
 						<form method="post" action="/auth/signout" use:enhance>
 							<button type="submit" onclick={closeProfileDropdown}>
 								<Icon name="log-out" size={14} />
@@ -100,7 +111,11 @@
 <SearchPopover
 	open={searchOpen}
 	onClose={closeSearch}
-	triggerRect={searchOpen ? getSearchTriggerRect() : null}
+/>
+
+<PreferencesPopover
+	open={preferencesOpen}
+	onClose={closePreferences}
 />
 
 <main class="layout main-content">

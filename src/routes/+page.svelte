@@ -25,6 +25,7 @@
 	let removingTmdbId = $state<number | null>(null);
 
 	async function refetchRecommendations() {
+		recommendationsLoading = true;
 		try {
 			const res = await fetch('/api/recommendations', { credentials: 'include' });
 			if (res.ok) {
@@ -33,6 +34,8 @@
 			}
 		} catch {
 			// Ignore fetch errors
+		} finally {
+			recommendationsLoading = false;
 		}
 	}
 
@@ -52,11 +55,17 @@
 
 	onMount(() => {
 		const addHandler = (e: Event) => handleAddToWatchlist(e as CustomEvent<{ tmdbId?: number }>);
+		const switchToWatchlistHandler = () => (activeTab = 'watchlist');
+		const preferencesUpdatedHandler = () => refetchRecommendations();
 		window.addEventListener('addToWatchlist', addHandler);
 		window.addEventListener('movieAddedToWatchlist', handleMovieAdded);
+		window.addEventListener('switchToWatchlist', switchToWatchlistHandler);
+		window.addEventListener('preferencesUpdated', preferencesUpdatedHandler);
 		return () => {
 			window.removeEventListener('addToWatchlist', addHandler);
 			window.removeEventListener('movieAddedToWatchlist', handleMovieAdded);
+			window.removeEventListener('switchToWatchlist', switchToWatchlistHandler);
+			window.removeEventListener('preferencesUpdated', preferencesUpdatedHandler);
 		};
 	});
 
@@ -150,12 +159,16 @@
 	{:else if !data.hasPreferences}
 		<div class="empty-state">
 			<p>Add your preferences to get personalized movie recommendations.</p>
-			<a href="/profile">Set preferences</a>
+			<button type="button" class="link-btn" onclick={() => window.dispatchEvent(new CustomEvent('openPreferences'))}>
+				Set preferences
+			</button>
 		</div>
 	{:else if recommendations.length === 0}
 		<div class="empty-state">
 			<p>No recommendations right now. Try adding more genres or favorite movies.</p>
-			<a href="/profile">Set preferences</a>
+			<button type="button" class="link-btn" onclick={() => window.dispatchEvent(new CustomEvent('openPreferences'))}>
+				Set preferences
+			</button>
 		</div>
 	{:else}
 		<ul class="movie-grid">

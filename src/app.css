@@ -307,20 +307,54 @@ button[formaction*='signUp']:hover {
 }
 
 /* Search popover */
-.search-popover {
+.search-popover-backdrop {
 	position: fixed;
-	z-index: 100;
+	inset: 0;
+	z-index: 200;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0, 0, 0, 0.6);
+	backdrop-filter: blur(4px);
+	-webkit-backdrop-filter: blur(4px);
+	animation: search-backdrop-in 0.2s ease-out;
+}
+
+@keyframes search-backdrop-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+.search-popover {
+	position: relative;
+	z-index: 201;
 	background: var(--color-bg-elevated);
 	backdrop-filter: blur(16px);
 	-webkit-backdrop-filter: blur(16px);
 	border: none;
 	border-radius: 12px;
-	box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+	box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
 	min-width: 20rem;
 	max-width: min(90vw, 28rem);
 	max-height: 80vh;
 	display: flex;
 	flex-direction: column;
+	animation: search-popover-in 0.25s ease-out;
+}
+
+@keyframes search-popover-in {
+	from {
+		opacity: 0;
+		transform: scale(0.96) translateY(-8px);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1) translateY(0);
+	}
 }
 
 .search-popover-input {
@@ -338,6 +372,29 @@ button[formaction*='signUp']:hover {
 .search-popover-results {
 	overflow-y: auto;
 	max-height: 20rem;
+}
+
+/* Preferences popover - extends search popover */
+.preferences-popover {
+	min-width: 24rem;
+	max-width: min(90vw, 32rem);
+	max-height: 85vh;
+}
+
+.preferences-popover-content {
+	overflow-y: auto;
+	max-height: 80vh;
+	padding: 1rem 1.25rem;
+}
+
+.preferences-popover-title {
+	font-size: 1.25rem;
+	font-weight: 600;
+	margin: 0 0 0.5rem;
+}
+
+.preferences-popover .onboarding-hint {
+	margin: 0 0 1.25rem;
 }
 
 /* Segmented control */
@@ -912,9 +969,23 @@ button[formaction*='signUp']:hover {
 	font-size: 1rem;
 }
 
-.empty-state a {
+.empty-state a,
+.empty-state .link-btn {
 	color: var(--color-tint);
 	font-weight: 500;
+	text-decoration: none;
+}
+
+.empty-state .link-btn {
+	background: none;
+	border: none;
+	padding: 0;
+	cursor: pointer;
+	font-size: inherit;
+}
+
+.empty-state .link-btn:hover {
+	text-decoration: underline;
 }
 
 .header-brand {

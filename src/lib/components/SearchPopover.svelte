@@ -6,10 +6,9 @@
 	interface Props {
 		open: boolean;
 		onClose: () => void;
-		triggerRect?: DOMRect | null;
 	}
 
-	let { open, onClose, triggerRect }: Props = $props();
+	let { open, onClose }: Props = $props();
 
 	const TMDB_POSTER_BASE = 'https://image.tmdb.org/t/p';
 
@@ -69,9 +68,9 @@
 		addForm?.requestSubmit();
 	}
 
-	function handleClickOutside(e: MouseEvent) {
+	function handleBackdropClick(e: MouseEvent) {
 		const target = e.target as HTMLElement;
-		if (!target.closest('.search-popover') && !target.closest('[data-search-trigger]')) {
+		if (target.classList.contains('search-popover-backdrop')) {
 			onClose();
 		}
 	}
@@ -81,35 +80,38 @@
 			searchQuery = '';
 			results = [];
 			inputEl?.focus();
-			document.addEventListener('click', handleClickOutside);
-			return () => document.removeEventListener('click', handleClickOutside);
 		}
 	});
 </script>
 
 {#if open}
 	<div
-		class="search-popover"
-		role="dialog"
-		aria-label="Search movies"
-		tabindex="-1"
-		onclick={(e) => e.stopPropagation()}
+		class="search-popover-backdrop"
+		role="presentation"
+		onclick={handleBackdropClick}
 		onkeydown={(e) => e.key === 'Escape' && onClose()}
-		style={
-			triggerRect
-				? `top: ${triggerRect.bottom + 8}px; left: ${triggerRect.left}px;`
-				: 'top: 4rem; left: 50%; transform: translateX(-50%);'
-		}
 	>
+		<div
+			class="search-popover"
+			role="dialog"
+			aria-label="Search movies"
+			aria-modal="true"
+			tabindex="-1"
+			onclick={(e) => e.stopPropagation()}
+			onkeydown={(e) => e.key === 'Escape' && onClose()}
+		>
 		<form
 			bind:this={addForm}
 			method="post"
 			action="/?/addMovie"
 			use:enhance={() => {
-				return async ({ update }) => {
+				return async ({ result, update }) => {
 					await update();
 					await invalidateAll();
 					onClose();
+					if (result.type === 'success') {
+						window.dispatchEvent(new CustomEvent('switchToWatchlist'));
+					}
 				};
 			}}
 		>
@@ -170,5 +172,6 @@
 				{/if}
 			</div>
 		</form>
+		</div>
 	</div>
 {/if}
