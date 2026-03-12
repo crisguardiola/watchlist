@@ -13,6 +13,6 @@ export const actions: Actions = {
 		await auth.api.signOut({
 			headers: event.request.headers
 		});
-		return redirect(302, '/login');
+		return redirect(302, '/login?loggedOut=true');
 	}
 };

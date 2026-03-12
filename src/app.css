@@ -1186,6 +1186,11 @@ button[formaction*='signUp']:hover {
 	margin: 1rem 0 0;
 }
 
+.logged-out-message {
+	color: var(--color-text-muted);
+	margin: 0 0 1.5rem;
+}
+
 .secondary {
 	background: var(--color-btn-secondary-bg);
 	color: var(--color-text);

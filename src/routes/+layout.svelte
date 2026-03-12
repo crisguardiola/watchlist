@@ -1,7 +1,6 @@
 <script lang="ts">
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
-	import { enhance } from '$app/forms';
 	import Icon from '$lib/components/icons/Icon.svelte';
 	import SearchPopover from '$lib/components/SearchPopover.svelte';
 	import PreferencesPopover from '$lib/components/PreferencesPopover.svelte';
@@ -95,8 +94,8 @@
 				{#if profileDropdownOpen}
 					<div class="profile-dropdown">
 						<button type="button" onclick={openPreferences}>Set preferences</button>
-						<form method="post" action="/auth/signout" use:enhance>
-							<button type="submit" onclick={closeProfileDropdown}>
+						<form method="post" action="/auth/signout">
+							<button type="submit">
 								<Icon name="log-out" size={14} />
 								Log out
 							</button>

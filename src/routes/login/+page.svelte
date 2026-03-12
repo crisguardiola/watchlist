@@ -1,12 +1,15 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import Icon from '$lib/components/icons/Icon.svelte';
-	import type { ActionData } from './$types';
+	import type { ActionData, PageData } from './$types';
 
-	let { form }: { form: ActionData } = $props();
+	let { form, data }: { form: ActionData; data: PageData } = $props();
 </script>
 
 <h1>Login</h1>
+{#if data.loggedOut}
+	<p class="logged-out-message">You've been logged out. Sign in again to continue.</p>
+{/if}
 <form method="post" action="?/signInEmail" use:enhance class="form-stack">
 	<label>
 		<span class="label-with-icon"><Icon name="mail" size={14} /> Email</span>

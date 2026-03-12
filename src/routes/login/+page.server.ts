@@ -8,7 +8,7 @@ export const load: PageServerLoad = async (event) => {
 	if (event.locals.user) {
 		return redirect(302, '/');
 	}
-	return {};
+	return { loggedOut: event.url.searchParams.get('loggedOut') === 'true' };
 };
 
 export const actions: Actions = {

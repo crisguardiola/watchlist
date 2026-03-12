@@ -1,0 +1,2 @@
+{"sessionId":"9e9f83","location":"signout/+page.server.ts:action","message":"Signout action entered","data":{"hypothesisId":"B"},"timestamp":1773333243364}
+{"sessionId":"9e9f83","location":"signout/+page.server.ts:signOut","message":"signOut completed","data":{"hypothesisId":"C"},"timestamp":1773333243526}
