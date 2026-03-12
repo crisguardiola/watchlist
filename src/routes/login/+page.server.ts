@@ -2,13 +2,18 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
 import type { PageServerLoad } from './$types';
 import { auth } from '$lib/server/auth';
+import { getTrendingMovies } from '$lib/server/tmdb';
 import { APIError } from 'better-auth/api';
 
 export const load: PageServerLoad = async (event) => {
 	if (event.locals.user) {
 		return redirect(302, '/');
 	}
-	return { loggedOut: event.url.searchParams.get('loggedOut') === 'true' };
+	const movies = await getTrendingMovies(8);
+	return {
+		loggedOut: event.url.searchParams.get('loggedOut') === 'true',
+		movies
+	};
 };
 
 export const actions: Actions = {

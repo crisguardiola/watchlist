@@ -188,6 +188,31 @@ export async function getTvDetails(tvId: number): Promise<{
 	};
 }
 
+/** Curated movies for login/landing pages when TMDB API is unavailable */
+const FALLBACK_MOVIES: Array<{ title: string; posterPath: string }> = [
+	{ title: 'Inception', posterPath: '/9gk7adHYeDvHkCSEqAvQNLV5u3z.jpg' },
+	{ title: 'The Dark Knight', posterPath: '/qJ2tW6WMUDux911r6m7haRef0WH.jpg' },
+	{ title: 'Interstellar', posterPath: '/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg' },
+	{ title: 'Pulp Fiction', posterPath: '/d5iIlFn5s0ImszYzBPb8PIfeqI3.jpg' },
+	{ title: 'The Shawshank Redemption', posterPath: '/q6y0Go1tsGEsmtKryCrAiBBOfXO2.jpg' },
+	{ title: 'Forrest Gump', posterPath: '/saHP97rTPS5eLmrLQEcANmKrsFl.jpg' },
+	{ title: 'The Godfather', posterPath: '/3bhkrj58Vtu7enYsRolD1fZdja1.jpg' },
+	{ title: 'The Matrix', posterPath: '/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg' }
+];
+
+export async function getTrendingMovies(limit = 8): Promise<Array<{ title: string; posterPath: string }>> {
+	const data = (await tmdbFetch<{
+		results?: Array<{ title?: string; poster_path: string | null }>;
+	}>('/trending/movie/week')) as {
+		results?: Array<{ title?: string; poster_path: string | null }>;
+	} | null;
+	if (!data?.results?.length) return FALLBACK_MOVIES.slice(0, limit);
+	return data.results
+		.filter((r) => r.poster_path && (r.title ?? '').trim())
+		.slice(0, limit)
+		.map((r) => ({ title: (r.title ?? '').trim(), posterPath: r.poster_path! }));
+}
+
 export async function getMovieRecommendations(
 	movieId: number,
 	page = 1
